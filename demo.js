@@ -12,8 +12,8 @@
 // @grant        GM_log
 // @homepageURL  https://github.com/ifeng0188/GenshinLiveBroadcastCDK
 // @supportURL   https://github.com/ifeng0188/GenshinLiveBroadcastCDK/issues
-// @downloadURL  https://raw.githubusercontent.com/ifeng0188/GenshinLiveBroadcastCDK/main/demo.js
-// @updateURL    https://raw.githubusercontent.com/ifeng0188/GenshinLiveBroadcastCDK/main/demo.js
+// @downloadURL  https://ghproxy.com/raw.githubusercontent.com/ifeng0188/GenshinLiveBroadcastCDK/main/demo.js
+// @updateURL    https://ghproxy.com/raw.githubusercontent.com/ifeng0188/GenshinLiveBroadcastCDK/main/demo.js
 // @license      GPL-3.0 license
 // ==/UserScript==
 
