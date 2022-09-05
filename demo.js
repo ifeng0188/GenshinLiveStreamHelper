@@ -1,12 +1,12 @@
 // ==UserScript==
 // @name         原神直播活动抢码
 // @namespace    https://github.com/ifeng0188
-// @version      1.2
-// @description  当前脚本适用于2.8版本，支持哔哩哔哩、虎牙、斗鱼多个平台 注意：使用之前请先修改配置，斗鱼平台需要手动完成一次滑块验证码（如果没弹就不用理）
+// @version      1.3
+// @description  当前脚本适用于3.0版本，支持哔哩哔哩、虎牙、斗鱼多个平台 注意：使用之前请先修改配置，斗鱼平台需要手动完成一次滑块验证码（如果没弹就不用理）
 // @author       ifeng0188
 // @match        *://www.bilibili.com/blackboard/activity-award-exchange.html?task_id=*
-// @match        *://zt.huya.com/23707/pc/index.html
-// @match        *://www.douyu.com/topic/ys28
+// @match        *://zt.huya.com/24663/pc/index.html
+// @match        *://www.douyu.com/topic/ys30
 // @icon         https://ys.mihoyo.com/main/favicon.ico
 // @grant        unsafeWindow
 // @grant        GM_log
