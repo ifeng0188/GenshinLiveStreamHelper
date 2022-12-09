@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         原神直播活动抢码助手
 // @namespace    https://github.com/ifeng0188
-// @version      3.2.1
+// @version      3.3
 // @description  一款用于原神直播活动的抢码助手，支持哔哩哔哩、虎牙、斗鱼多个平台的自动抢码，附带一些页面优化功能 注意：使用之前请先修改配置，斗鱼平台需要手动完成一次滑块验证码（如果没弹就不用理）
 // @author       ifeng0188
 // @match        *://www.bilibili.com/blackboard/activity-award-exchange.html?task_id=*
@@ -17,7 +17,7 @@
 // @license      GPL-3.0 license
 // ==/UserScript==
 
-;(function () {
+; (function () {
   'use strict'
 
   // 用户设置（需自行修改）
@@ -86,26 +86,27 @@
   // 抢码功能
   let exchange = () => {
     let receive_loop = () => {
-      // 针对虎牙平台需领取通行证经验的特殊处理
+      // 虎牙领经验
       if (platform == '虎牙') {
         setInterval(() => {
           document.querySelectorAll('div[title="10经验值"]+button')[0].click()
           document.querySelectorAll('.exp-award .reload')[0].click()
         }, userSetting.interval)
       }
-      // 获取兑换按钮
-      let exchangeBtn = (function () {
-        switch (platform) {
-          case '哔哩哔哩':
-            return document.querySelectorAll('.exchange-button')[0]
-          case '虎牙':
-            return document.querySelectorAll('.exp-award li button')[userSetting.level]
-          case '斗鱼':
-            return document.querySelectorAll('.wmTaskV3GiftBtn-btn')[userSetting.level]
-        }
-      })()
-      // 开始抢码
-      setInterval(() => exchangeBtn.click(), userSetting.interval)
+      // 抢原石
+      setInterval(() => {
+        let exchangeBtn = (function () {
+          switch (platform) {
+            case '哔哩哔哩':
+              return document.querySelectorAll('.exchange-button')[0]
+            case '虎牙':
+              return document.querySelectorAll('.exp-award li button')[userSetting.level]
+            case '斗鱼':
+              return document.querySelectorAll('.wmTaskV3GiftBtn-btn')[userSetting.level]
+          }
+        })()
+        exchangeBtn.click()
+      }, userSetting.interval)
     }
 
     // 设置定时任务
