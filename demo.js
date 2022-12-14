@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         原神直播活动抢码助手
 // @namespace    https://github.com/ifeng0188
-// @version      3.3
-// @description  一款用于原神直播活动的抢码助手，支持哔哩哔哩、虎牙、斗鱼多个平台的自动抢码，附带一些页面优化功能 注意：使用之前请先修改配置，斗鱼平台需要手动完成一次滑块验证码（如果没弹就不用理）
+// @version      3.3.1
+// @description  一款用于原神直播活动的抢码助手，支持哔哩哔哩、虎牙、斗鱼多个平台的自动抢码，附带一些页面优化功能
 // @author       ifeng0188
 // @match        *://www.bilibili.com/blackboard/activity-award-exchange.html?task_id=*
 // @match        *://zt.huya.com/*/pc/index.html
@@ -10,6 +10,9 @@
 // @icon         https://ys.mihoyo.com/main/favicon.ico
 // @grant        unsafeWindow
 // @grant        GM_log
+// @grant        GM_registerMenuCommand
+// @grant        GM_setValue
+// @grant        GM_getValue
 // @homepageURL  https://github.com/ifeng0188/GenshinLiveStreamHelper
 // @supportURL   https://github.com/ifeng0188/GenshinLiveStreamHelper/issues
 // @downloadURL  https://raw.fastgit.org/ifeng0188/GenshinLiveStreamHelper/main/demo.js
@@ -17,37 +20,29 @@
 // @license      GPL-3.0 license
 // ==/UserScript==
 
-; (function () {
+(function () {
   'use strict'
 
-  // 用户设置（需自行修改）
-  let userSetting = {
-    // >>>净化类<<<
-    // 虎牙平台页面加载完成后，自动展开里程碑选项卡
-    purify_huya_autoExpand: true,
-    // 斗鱼平台页面加载完成后，移除活动页面的直播画面，让页面更流畅
-    purify_douyu_removeLiveStream: true,
-    // 斗鱼平台页面加载完成后，自动展开里程碑选项卡
-    purify_douyu_autoExpand: true,
-
-    // >>>抢码类<<<
-    // 里程碑奖励等级 [0-5] 对应第1-6档 PS：里程碑天数从小到大
-    level: 0,
-    // 开始抢码时间 PS：针对隔天补货等特殊情况的特殊处理
-    // hour 时 [0-23]
-    // minute 分 [0-59]
-    // second 秒 [0-59]
-    start_time: {
-      hour: 1,
-      minute: 59,
-      second: 59,
-    },
-    // 领取间隔时间（单位：毫秒 1000毫秒=1秒） PS：顺带一提，某站抢码会提示繁忙，但是这个繁忙是指服务器繁忙，一般不需要增加间隔时间
-    interval: 100,
+  // 配置初始化
+  if (!GM_getValue('gh_reward_progress')) {
+    GM_setValue('gh_reward_progress', 1)
+  }
+  if (!GM_getValue('gh_start_time')) {
+    GM_setValue('gh_start_time', '01:59:59')
+  }
+  if (!GM_getValue('gh_interval')) {
+    GM_setValue('gh_interval', '10,1000,100')
+  }
+  if (!GM_getValue('gh_autoExpand')) {
+    GM_setValue('gh_autoExpand', false)
+  }
+  if (!GM_getValue('gh_pagePurify')) {
+    GM_setValue('gh_pagePurify', false)
   }
 
+  // 变量初始化
   let platform = (function () {
-    if (location.href.includes('bilibili')) return '哔哩哔哩'
+    if (location.href.includes('bilibili')) return 'B站'
     if (document.title.includes('原神')) {
       if (location.href.includes('huya') && document.title.includes('直播季')) return '虎牙'
       if (location.href.includes('douyu') && document.title.includes('领原石')) return '斗鱼'
@@ -55,85 +50,162 @@
     return ''
   })()
 
-  // 移除元素
-  let clearElement = (el) => {
-    el.parentNode.removeChild(el)
+  let interval = (function () {
+    let group = GM_getValue('gh_interval').split(',')
+    switch (platform) {
+      case 'B站':
+        return group[0]
+      case '虎牙':
+        return group[1]
+      case '斗鱼':
+        return group[2]
+    }
+  })()
+
+  // 注册菜单
+  GM_registerMenuCommand(`设定里程碑进度：${GM_getValue('gh_reward_progress')}（点击修改）`, set_reward_progress)
+  GM_registerMenuCommand(`设定抢码时间：${GM_getValue('gh_start_time')}（点击修改）`, set_start_time)
+  GM_registerMenuCommand(`设定抢码间隔：${interval} 毫秒（点击修改）`, set_interval)
+  GM_registerMenuCommand(`${GM_getValue('gh_autoExpand') ? '✅' : '❌'}自动打开里程碑（点击切换）`, switch_autoExpand)
+  GM_registerMenuCommand(`${GM_getValue('gh_pagePurify') ? '✅' : '❌'}页面净化（点击切换）`, switch_pagePurify)
+
+  function set_reward_progress() {
+    let temp = parseInt(prompt('请输入里程碑进度，输入范围1~6，天数从小到大对应相关奖励', GM_getValue('gh_reward_progress')))
+    if (temp) {
+      if (temp > 6 || temp < 1) {
+        alert('格式错误，请重新输入')
+        return
+      }
+      GM_setValue('gh_reward_progress', temp)
+      alert('设置成功，请刷新页面使之生效')
+    } else {
+      alert('格式错误，请重新输入')
+    }
   }
 
-  // 输出日志
-  let outputLog = (msg) => {
-    console.info('【原神直播活动抢码助手】' + msg)
-  }
-
-  // 净化功能
-  let purify = () => {
-    if (platform == '虎牙' && userSetting.purify_huya_autoExpand) {
-      document.querySelectorAll('.J_item')[1].click()
-    }
-    if (platform == '斗鱼') {
-      if (userSetting.purify_douyu_removeLiveStream || userSetting.purify_douyu_autoExpand) {
-        let timer = setInterval(() => {
-          if (document.querySelectorAll('#bc54')[0]) {
-            clearInterval(timer)
-            if (userSetting.purify_douyu_removeLiveStream) clearElement(document.querySelectorAll('#bc3')[0].parentNode)
-            if (userSetting.purify_douyu_autoExpand) document.querySelectorAll('#bc54')[0].click()
-          }
-        }, 1000)
-      }
+  function set_start_time() {
+    let temp = prompt('请输入抢码时间，格式示例：01:59:59', GM_getValue('gh_start_time'))
+    if (/^(\d{2}):(\d{2}):(\d{2})$/.test(temp)) {
+      GM_setValue('gh_start_time', temp)
+      alert('设置成功，请刷新页面使之生效')
+    } else {
+      alert('格式错误，请重新输入')
     }
   }
 
-  // 抢码功能
-  let exchange = () => {
-    let receive_loop = () => {
-      // 虎牙领经验
-      if (platform == '虎牙') {
-        setInterval(() => {
-          document.querySelectorAll('div[title="10经验值"]+button')[0].click()
-          document.querySelectorAll('.exp-award .reload')[0].click()
-        }, userSetting.interval)
-      }
-      // 抢原石
-      setInterval(() => {
-        let exchangeBtn = (function () {
-          switch (platform) {
-            case '哔哩哔哩':
-              return document.querySelectorAll('.exchange-button')[0]
-            case '虎牙':
-              return document.querySelectorAll('.exp-award li button')[userSetting.level]
-            case '斗鱼':
-              return document.querySelectorAll('.wmTaskV3GiftBtn-btn')[userSetting.level]
-          }
-        })()
-        exchangeBtn.click()
-      }, userSetting.interval)
+  function set_interval() {
+    let temp = prompt('请输入抢码间隔，格式示例：10,1000,100，即代表B站平台间隔为10毫秒 虎牙平台间隔为1000毫秒 斗鱼平台间隔为100毫秒', GM_getValue('gh_interval'))
+    if (/^(\d+),(\d+),(\d+)$/.test(temp)) {
+      GM_setValue('gh_interval', temp)
+      alert('设置成功，请刷新页面使之生效')
+    } else {
+      alert('格式错误，请重新输入')
     }
+  }
 
-    // 设置定时任务
-    let st_hour = userSetting.start_time.hour
-    let st_minute = userSetting.start_time.minute
-    let st_second = userSetting.start_time.second
-    outputLog(`助手计划于${st_hour}点${st_minute}分${st_second}秒开始领取第${userSetting.level + 1}档的直播奖励（如有误请自行修改配置）`)
-    let timer = setInterval(() => {
-      let date = new Date()
-      if (date.getHours() == st_hour && date.getMinutes() == st_minute && date.getSeconds() >= st_second) {
-        clearInterval(timer)
-        outputLog('助手开始领取，如若出现数据异常为正常情况')
-        receive_loop()
-      }
-    }, 100)
+  function switch_autoExpand() {
+    GM_setValue('gh_autoExpand', !GM_getValue('gh_autoExpand'))
+    alert('切换成功，请刷新页面使之生效')
+  }
+
+  function switch_pagePurify() {
+    GM_setValue('gh_pagePurify', !GM_getValue('gh_pagePurify'))
+    alert('切换成功，请刷新页面使之生效')
   }
 
   // Run
   if (platform) {
-    outputLog(`当前直播平台为${platform}，助手开始运行`)
-    if (platform == '虎牙' && !userSetting.purify_huya_autoExpand) outputLog('★请手动打开里程碑页面★')
-    if (platform == '斗鱼' && !userSetting.purify_douyu_autoExpand) outputLog('★请手动打开里程碑页面，并通过领取其他奖励，完成一次验证码★')
-    purify()
-    exchange()
-    outputLog('感谢你的使用，如本项目对你有帮助可以帮忙点个Star')
-    outputLog('https://github.com/ifeng0188/GenshinLiveStreamHelper')
-  } else {
-    outputLog('检测到当前非原神直播活动页面，助手已休眠')
+    log(`当前直播平台为${platform}，助手开始运行`)
+    run_purify_process()
+    run_rob_process()
+    log('感谢你的使用，如本项目对你有帮助可以帮忙点个Star')
+    log('https://github.com/ifeng0188/GenshinLiveStreamHelper')
+  }
+
+  // 运行净化进程
+  function run_purify_process() {
+    if (GM_getValue('gh_autoExpand')) {
+      switch (platform) {
+        case '虎牙':
+          document.querySelectorAll('.J_item')[1].click()
+        case '斗鱼':
+          let timer = setInterval(() => {
+            if (document.querySelectorAll('#bc54')[0]) {
+              clearInterval(timer)
+              document.querySelectorAll('#bc54')[0].click()
+            }
+          }, 1000)
+      }
+    }
+    if (GM_getValue('gh_pagePurify')) {
+      switch (platform) {
+        case '斗鱼':
+          let timer = setInterval(() => {
+            if (document.querySelectorAll('#bc54')[0]) {
+              clearInterval(timer)
+              clearElement(document.querySelectorAll('#bc3')[0].parentNode)
+            }
+          }, 1000)
+      }
+    }
+  }
+
+  // 运行抢码进程
+  function run_rob_process() {
+    // 显示注意事项
+    if (!GM_getValue('gh_autoExpand')) {
+      switch (platform) {
+        case '虎牙':
+          log('★请手动打开里程碑页面★')
+        case '斗鱼':
+          log('★请手动打开里程碑页面，并通过领取其他奖励，完成一次验证码★')
+      }
+    }
+
+    // 变量初始化
+    let level = parseInt(GM_getValue('gh_reward_progress'))
+    let start_time = GM_getValue('gh_start_time').split(':')
+
+    log(`助手计划于${parseInt(start_time[0])}点${parseInt(start_time[1])}分${parseInt(start_time[2])}秒开始领取第${level}档的里程碑奖励（如有误请自行通过菜单修改配置）`)
+
+    // 等待开抢
+    let timer = setInterval(() => {
+      let date = new Date()
+      if (date.getHours() == parseInt(start_time[0]) && date.getMinutes() == parseInt(start_time[1]) && date.getSeconds() >= parseInt(start_time[2])) {
+        clearInterval(timer)
+        rob()
+      }
+    }, 100)
+
+    // 抢码实现
+    function rob() {
+      log('助手开始领取，如若出现数据异常为正常情况')
+      if (platform == '虎牙') {
+        setInterval(() => {
+          document.querySelectorAll('div[title="10经验值"]+button')[0].click()
+          document.querySelectorAll('.exp-award .reload')[0].click()
+        }, interval)
+      }
+      setInterval(() => {
+        switch (platform) {
+          case '哔哩哔哩':
+            document.querySelectorAll('.exchange-button')[0].click()
+          case '虎牙':
+            document.querySelectorAll('.exp-award li button')[level - 1].click()
+          case '斗鱼':
+            document.querySelectorAll('.wmTaskV3GiftBtn-btn')[level - 1].click()
+        }
+      }, interval)
+    }
+  }
+
+  // 移除元素
+  function clearElement(el) {
+    el.parentNode.removeChild(el)
+  }
+
+  // 日志
+  function log(msg) {
+    console.info(`【原神直播活动抢码助手】${msg}`)
   }
 })()
