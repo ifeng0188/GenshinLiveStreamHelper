@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         原神直播活动抢码助手
 // @namespace    https://github.com/ifeng0188
-// @version      3.4.0
+// @version      3.5.0
 // @description  一款用于原神直播活动的抢码助手，支持哔哩哔哩、虎牙、斗鱼多个平台的自动抢码，附带一些页面优化功能
 // @author       ifeng0188
 // @match        *://www.bilibili.com/blackboard/activity-award-exchange.html?task_id=*
@@ -128,24 +128,30 @@
       switch (platform) {
         case '虎牙':
           document.querySelectorAll('.J_item')[1].click()
-        case '斗鱼':
+          break
+        case '斗鱼': {
           let timer = setInterval(() => {
             if (document.querySelectorAll('#bc68')[0]) {
               clearInterval(timer)
               document.querySelectorAll('#bc68')[0].click()
             }
-          }, 1000)
+          }, 2000)
+          break
+        }
       }
     }
     if (GM_getValue('gh_pagePurify')) {
       switch (platform) {
-        case '斗鱼':
+        case '斗鱼': {
           let timer = setInterval(() => {
-            if (document.querySelectorAll('#bc46')[0]) {
+            if (document.querySelectorAll('div[title="暂停"]')[0]) {
               clearInterval(timer)
-              clearElement(document.querySelectorAll('#bc46')[0].parentNode)
+              document.querySelectorAll('div[title="暂停"]')[0].click()
+              clearElement(document.querySelectorAll('.wm-general')[1])
             }
-          }, 1000)
+          }, 2000)
+          break
+        }
       }
     }
   }
@@ -157,8 +163,10 @@
       switch (platform) {
         case '虎牙':
           log('★请手动打开里程碑页面★')
+          break
         case '斗鱼':
           log('★请手动打开里程碑页面，并通过领取其他奖励，完成一次验证码★')
+          break
       }
     }
 
@@ -190,10 +198,13 @@
         switch (platform) {
           case '哔哩哔哩':
             document.querySelectorAll('.exchange-button')[0].click()
+            break
           case '虎牙':
             document.querySelectorAll('.exp-award li button')[level - 1].click()
+            break
           case '斗鱼':
             document.querySelectorAll('.wmTaskV3GiftBtn-btn')[level - 1].click()
+            break
         }
       }, interval)
     }
