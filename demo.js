@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         原神直播活动抢码助手
 // @namespace    https://github.com/ifeng0188
-// @version      3.5.0
+// @version      3.5.1
 // @description  一款用于原神直播活动的抢码助手，支持哔哩哔哩、虎牙、斗鱼多个平台的自动抢码，附带一些页面优化功能
 // @author       ifeng0188
 // @match        *://www.bilibili.com/blackboard/activity-award-exchange.html?task_id=*
@@ -70,14 +70,12 @@
   GM_registerMenuCommand(`${GM_getValue('gh_pagePurify') ? '✅' : '❌'}页面净化（点击切换）`, switch_pagePurify)
 
   function set_reward_progress() {
-    let temp = parseInt(prompt('请输入里程碑进度，输入范围1~6，天数从小到大对应相关奖励', GM_getValue('gh_reward_progress')))
-    if (temp) {
-      if (temp > 6 || temp < 1) {
-        alert('格式错误，请重新输入')
-        return
-      }
+    let temp = prompt('请输入里程碑进度，输入范围1~6，天数从小到大对应相关奖励', GM_getValue('gh_reward_progress'))
+    if (temp == null) return
+    if (parseInt(temp) > 0 || parseInt(temp) < 7) {
       GM_setValue('gh_reward_progress', temp)
-      alert('设置成功，请刷新页面使之生效')
+      alert('设置成功，即将刷新页面使之生效')
+      location.reload()
     } else {
       alert('格式错误，请重新输入')
     }
@@ -85,9 +83,11 @@
 
   function set_start_time() {
     let temp = prompt('请输入抢码时间，格式示例：01:59:59', GM_getValue('gh_start_time'))
+    if (temp == null) return
     if (/^(\d{2}):(\d{2}):(\d{2})$/.test(temp)) {
       GM_setValue('gh_start_time', temp)
-      alert('设置成功，请刷新页面使之生效')
+      alert('设置成功，即将刷新页面使之生效')
+      location.reload()
     } else {
       alert('格式错误，请重新输入')
     }
@@ -95,9 +95,11 @@
 
   function set_interval() {
     let temp = prompt('请输入抢码间隔，格式示例：10,1000,100，即代表B站平台间隔为10毫秒 虎牙平台间隔为1000毫秒 斗鱼平台间隔为100毫秒', GM_getValue('gh_interval'))
+    if (temp == null) return
     if (/^(\d+),(\d+),(\d+)$/.test(temp)) {
       GM_setValue('gh_interval', temp)
-      alert('设置成功，请刷新页面使之生效')
+      alert('设置成功，即将刷新页面使之生效')
+      location.reload()
     } else {
       alert('格式错误，请重新输入')
     }
@@ -105,12 +107,14 @@
 
   function switch_autoExpand() {
     GM_setValue('gh_autoExpand', !GM_getValue('gh_autoExpand'))
-    alert('切换成功，请刷新页面使之生效')
+    alert('切换成功，即将刷新页面使之生效')
+    location.reload()
   }
 
   function switch_pagePurify() {
     GM_setValue('gh_pagePurify', !GM_getValue('gh_pagePurify'))
-    alert('切换成功，请刷新页面使之生效')
+    alert('切换成功，即将刷新页面使之生效')
+    location.reload()
   }
 
   // Run
@@ -118,7 +122,7 @@
     log(`当前直播平台为${platform}，助手开始运行`)
     run_purify_process()
     run_rob_process()
-    log('感谢你的使用，如本项目对你有帮助可以帮忙点个Star')
+    log('感谢你的使用，如本项目对你有帮助可以帮忙点个Star，有能力的可以从下方项目地址找到爱发电点个赞助，维持一下失业带专生的生计')
     log('https://github.com/ifeng0188/GenshinLiveStreamHelper')
   }
 
@@ -128,12 +132,18 @@
       switch (platform) {
         case '虎牙':
           document.querySelectorAll('.J_item')[1].click()
+          setTimeout(() => {
+            document.querySelectorAll('.J_expBox')[0].scrollIntoView()
+          }, 5000)
           break
         case '斗鱼': {
           let timer = setInterval(() => {
             if (document.querySelectorAll('#bc68')[0]) {
               clearInterval(timer)
               document.querySelectorAll('#bc68')[0].click()
+              setTimeout(() => {
+                document.querySelectorAll('.wmTaskV3')[0].scrollIntoView()
+              }, 5000)
             }
           }, 2000)
           break
@@ -189,9 +199,17 @@
     function rob() {
       log('助手开始领取，如若出现数据异常为正常情况')
       if (platform == '虎牙') {
-        setInterval(() => {
+        let timer = setInterval(() => {
           document.querySelectorAll('div[title="10经验值"]+button')[0].click()
           document.querySelectorAll('.exp-award .reload')[0].click()
+          if (document.querySelectorAll('div[title="10经验值"]+button')[0].innerText != '未完成') {
+            clearInterval(timer)
+            setTimeout(() => {
+              for (let e of document.querySelectorAll('.J_dcpConfirm')) {
+                e.click()
+              }
+            }, 1000)
+          }
         }, interval)
       }
       setInterval(() => {
