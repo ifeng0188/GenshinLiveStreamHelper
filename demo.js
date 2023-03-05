@@ -214,7 +214,7 @@
       }
       setInterval(() => {
         switch (platform) {
-          case '哔哩哔哩':
+          case 'B站':
             document.querySelectorAll('.exchange-button')[0].click()
             break
           case '虎牙':
