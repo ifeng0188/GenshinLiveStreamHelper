@@ -1,14 +1,12 @@
-<div align="center">
+<h1 align="center">GenshinLiveStreamHelper</h1>
+<h6 align="center">一款用于原神直播活动的抢码助手，支持哔哩哔哩、虎牙、斗鱼多个平台的自动抢码，附带一些页面优化功能</h6>
+<p align="center">
+    <a href="https://raw.fastgit.org/ifeng0188/GenshinLiveStreamHelper/main/LICENSE"><img src="https://img.shields.io/github/license/ifeng0188/GenshinLiveStreamHelper" alt="license"></a>
+</p>
 
-# GenshinLiveStreamHelper
+> 本项目仅用于帮助部分个人用户获得参与感，并不保证能抢到
 
-一款用于原神直播活动的抢码助手，支持哔哩哔哩、虎牙、斗鱼多个平台的自动抢码，附带一些页面优化功能
-
-</div>
-
-> 本项目仅用于帮助部分个人用户获得参与感，并不保证能抢到，工作室请绕路谢谢
-
-## 使用方法
+## 丨使用方法
 
 使用以下任一种方式加载脚本
 
@@ -19,19 +17,19 @@
 
 注意：使用前请先通过菜单修改配置，使用时请留意浏览器控制台输出（目前已处理虎牙平台需要刷新才可领取的问题，其他平台都可无需刷新直接领取）
 
-## 功能
+## 丨功能
 
 - 虎牙、斗鱼平台抢码页面加载完毕后，自动展开里程碑选项卡
 - 斗鱼平台抢码页面加载完毕后，移除直播画面，使页面更流畅
 - 三平台自动抢码
 
-## 支持平台
+## 丨支持平台
 
 - 哔哩哔哩
 - 虎牙
 - 斗鱼
 
-## 其他
+## 丨其他
 
 - 赞助：[爱发电](https://afdian.net/a/ifeng0188)
 - 本项目仅供学习交流使用，使用时需严格遵守开源许可协议
