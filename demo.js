@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         原神直播活动抢码助手
 // @namespace    https://github.com/ifeng0188
-// @version      3.5.1
+// @version      3.5.2
 // @description  一款用于原神直播活动的抢码助手，支持哔哩哔哩、虎牙、斗鱼多个平台的自动抢码，附带一些页面优化功能
 // @author       ifeng0188
 // @match        *://www.bilibili.com/blackboard/activity-award-exchange.html?task_id=*
@@ -214,7 +214,7 @@
       }
       setInterval(() => {
         switch (platform) {
-          case '哔哩哔哩':
+          case 'B站':
             document.querySelectorAll('.exchange-button')[0].click()
             break
           case '虎牙':
